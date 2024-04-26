@@ -1,6 +1,4 @@
-import { register } from "module";
 import { IData } from "./i-data";
-var fs = require("fs");
 const xlsx = require('xlsx');
 
 const groupeByYear = async (data: IData[]) => {
@@ -15,7 +13,7 @@ const groupeByYear = async (data: IData[]) => {
 
     for await (const year of yearList) {
         let tmpData: IData[] = [];
-        for (const register of data) {
+        for await (const register of data) {
             if (register.year === year) {
                 tmpData.push(register);
             }
@@ -99,7 +97,7 @@ const jsonFormat = async (data: IData[][]) => {
 
     let result: object[] = [];
 
-    for (const month of data) {
+    for await (const month of data) {
         let register: any = {};
         register["data"] = await switchMonth(month[0].month) + '/' + month[0].year;
         for await (const day of month) {
@@ -134,6 +132,7 @@ const convertToXlsx = async (jsonData: object[], outputFilePath: string) => {
     }
 
     let result: object[] = [];
+    // console.log(await jsonFormat(groupedYearAndMonth[0])); <== TESTE
     for await (const register of groupedYearAndMonth) {
         result.push(...await jsonFormat(register));
     }
