@@ -45,19 +45,82 @@ const groupeByMonth = async (data: IData[]) => {
         }
         group.push(tmpData);
     }
-    // console.log(group);
 
     return group;
 };
 
-const jsonMaker = (data: IData[][]) => {
-    const m1 = data[0];
+const switchMonth = async (date: string) => {
 
+    switch (date) {
+        case '1':
+            return 'janeiro';
+            break;
+        case '2':
+            return 'fevereiro';
+            break;
+        case '3':
+            return 'março';
+            break;
+        case '4':
+            return 'abril';
+            break;
+        case '5':
+            return 'maio';
+            break;
+        case '6':
+            return 'junho';
+            break;
+        case '7':
+            return 'julho';
+            break;
+        case '8':
+            return 'agosto';
+            break;
+        case '9':
+            return 'setembro';
+            break;
+        case '10':
+            return 'outubro';
+            break;
+        case '11':
+            return 'novembro';
+            break;
+        case '12':
+            return 'dezembro';
+            break;
 
-    for (const day of m1) {
+        default:
+            return 'switchDate() error';
+            break;
+    }
+};
 
+const jsonFormat = async (data: IData[][]) => {
+
+    let result: object[] = [];
+
+    for (const month of data) {
+        let register: any = {};
+        register["data"] = await switchMonth(month[0].month) + '/' + month[0].year;
+        for await (const day of month) {
+            register[day.day] = day.q;
+        }
+
+        result.push(register);
     }
 
+    //console.log(result);
+
+    return result;
+};
+
+const convertToXlsx = async (jsonData: object[], outputFilePath: string) => {
+    const workbook = await xlsx.utils.book_new();
+    const sheet = await xlsx.utils.json_to_sheet(jsonData);
+    await xlsx.utils.book_append_sheet(workbook, sheet, 'Sheet 1');
+    await xlsx.writeFile(workbook, outputFilePath);
+
+    console.log(`Conversion from JSON to XLSX successful!`);
 };
 
 (async function () {
@@ -70,6 +133,11 @@ const jsonMaker = (data: IData[][]) => {
         groupedYearAndMonth.push(await groupeByMonth(year));
     }
 
-    jsonMaker(groupedYearAndMonth[0]);
+    let result: object[] = [];
+    for await (const register of groupedYearAndMonth) {
+        result.push(...await jsonFormat(register));
+    }
+
+    await convertToXlsx(result, 'output.xlsx');
 
 })();
